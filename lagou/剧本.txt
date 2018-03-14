@@ -1,0 +1,18 @@
+1. 爬取字段
+companyId:
+positionId:
+positionName:       岗位名称
+createTime:         发布时间
+positionAdvantage:  职位福利
+salary:             薪资
+workYear:           工作年限
+education:          学历
+city:               城市
+companyLogo:        公司图标
+jobNature:          职位性质
+industryField:      公司领域
+financeStage:       资产等级
+companyLabelList:   公司标签
+companySize:        公司规模
+companyFullName:    公司全称
+
