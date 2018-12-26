@@ -6,7 +6,9 @@ from utils import delay, local_mongo_verify
 
 
 class LagouSpider(object):
+    """拉勾网爬虫"""
     def __init__(self):
+        """必要初始化操作"""
         self.start_url = "https://www.lagou.com/jobs/positionAjax.json?needAddtionalResult=false&isSchoolJob=0"
         self.headers = {
             "Accept": "application/json, text/javascript, */*; q=0.01",
@@ -28,34 +30,24 @@ class LagouSpider(object):
         self.coll = self.client["spider"]["lagou"]
 
     @retry(stop_max_attempt_number=5)
-    def _make_response(self, url, **kwargs):
-        if 'method' not in kwargs:
-            kwargs['method'] = 'GET'
-
-        new_kwargs = {}
-        for k, v in kwargs.items():
-            if k in ['method', 'url', 'params', 'data', 'headers', 'cookies', 'files', 'auth', 'timeout',
-                     'allow_redirects', 'proxies',
-                     'hooks', 'stream', 'verify', 'cert', 'json']:
-                new_kwargs[k] = v
-            else:
-                print('[出现不能解析的 req 请求参数][{0}]'.format(k))
-        new_kwargs["timeout"] = 5
-
-        response = requests.request(url=url, **new_kwargs)
+    def _make_response(self, url, data, headers):
+        """发送请求"""
+        response = requests.post(url=url, data=data, headers=headers)
         assert response.status_code == 200
         return response
 
     @delay
     def make_response(self, form):
+        """获取响应"""
         try:
-            res = self._make_response(self.start_url, data=form, headers=self.headers, method='POST')
+            res = self._make_response(self.start_url, data=form, headers=self.headers)
         except Exception as e:
             print(e)
             res = None
         return res
 
     def parse(self, res):
+        """数据解析"""
         res_json = res.json()
         position_list = res_json["content"]["positionResult"]["result"]
         items = list()
@@ -81,10 +73,12 @@ class LagouSpider(object):
         return items
 
     def insert_mongo(self, items):
+        """数据入库"""
         for item in items:
             self.coll.insert(item)
 
     def run(self):
+        """爬虫启动"""
         for n in range(0, 30):
             form = {
                 'first': True if n == 0 else False,
@@ -97,6 +91,7 @@ class LagouSpider(object):
             print("已完成{}页".format(n + 1))
 
     def __del__(self):
+        """爬虫析构，关闭资源"""
         self.client.close()
 
 
